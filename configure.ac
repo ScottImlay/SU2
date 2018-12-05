@@ -173,6 +173,30 @@ fi
 
 AM_CONDITIONAL(BUILD_TECIO, test x$enabletecio = xyes)
 AC_CONFIG_FILES([externals/tecio/Makefile])
+AC_CONFIG_FILES([externals/tecio/teciosrc/Makefile])
+
+# TecIO MPI
+CONFIGURE_TECIOMPI
+if (test $enableteciompi = yes); then
+  AC_MSG_RESULT([Teciompi enabled ...])
+  su2_externals_INCLUDES="-DHAVE_TECIO $TECIOMPI_INCLUDE $su2_externals_INCLUDES"
+  su2_externals_LIBS="$TECIOMPI_LIB $su2_externals_LIBS"
+  # Check if boost directory exists, otherwise extract the sources
+  if ( ! test -d "$srcdir/externals/tecio/boost" ); then
+    AC_MSG_RESULT([Extracting boost source ...])
+    if ( ! tar -xzf $srcdir/externals/tecio/boost.tar.gz -C $srcdir/externals/tecio/ ); then
+	AC_MSG_ERROR([Extraction of boost sources to $srcdir/externals/tecio/boost using 'tar' failed ...])	    
+    fi
+  fi
+   # Attempt to get pthread to work
+   AC_CHECK_LIB(pthread,pthread_create,LIBPTHREAD="-lpthread")
+  su2_externals_LIBPTHREAD="$LIBPTHREAD"
+else
+  su2_externals_INCLUDES="$su2_externals_INCLUDES"
+fi
+
+AM_CONDITIONAL(BUILD_TECIOMPI, test x$enableteciompi = xyes)
+AC_CONFIG_FILES([externals/tecio/teciompisrc/Makefile])
 
 # Metis
 CONFIGURE_METIS
@@ -393,6 +417,7 @@ Build Configuration Summary:
     Metis support:        $enablemetis
     Parmetis support:     $enableparmetis
     TecIO support:        $enabletecio
+    TecIOMPI support:     $enableteciompi
     CGNS support:         $enablecgns
     Mutation++ support:   $have_Mutationpp
     MKL support:          $have_MKL

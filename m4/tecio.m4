@@ -24,7 +24,7 @@ AC_DEFUN([CONFIGURE_TECIO],
   # The TECIO API is distributed with libmesh, so we don't have to guess
   # where it might be installed...
   if (test $enabletecio = yes); then
-
+  
     # tecio platform-specific compiler flags
     TECIO_CPPFLAGS=""
     case "${host_os}" in
@@ -46,8 +46,10 @@ AC_DEFUN([CONFIGURE_TECIO],
     esac
 
 
-     TECIO_INCLUDE="-I\$(top_srcdir)/externals/tecio/teciosrc"
-     TECIO_LIB="\$(top_builddir)/externals/tecio/libtecio.a"
+    if (test "x$enabletecio" = xyes); then
+       TECIO_INCLUDE="-I\$(top_srcdir)/externals/tecio/teciosrc"
+       TECIO_LIB="\$(top_builddir)/externals/tecio/teciosrc/libtecio.a"
+    fi
      AC_DEFINE(HAVE_TECPLOT_API, 1, [Flag indicating whether the library will be compiled with Tecplot TecIO API support])
      AC_DEFINE(HAVE_TECPLOT_API_112, 1, [Flag indicating tecplot API understands newer features])
      AC_MSG_RESULT(<<< Configuring library with Tecplot TecIO support >>>)
@@ -60,4 +62,53 @@ AC_DEFUN([CONFIGURE_TECIO],
 
   AC_SUBST(TECIO_INCLUDE)
   AC_SUBST(TECIO_CPPFLAGS)
+])
+
+AC_DEFUN([CONFIGURE_TECIOMPI],
+[
+
+  AC_ARG_ENABLE(teciompi,
+                AC_HELP_STRING([--enable-teciompi],
+                               [build with Tecplot TecIO-mpi API support (from source)]),
+		[case "${enableval}" in
+		  yes)  enableteciompi=yes ;;
+		   no)  enableteciompi=no ;;
+ 		    *)  AC_MSG_ERROR(bad value ${enableval} for --enable-tecio) ;;
+		 esac],
+		 [enableteciompi=no])
+
+  if (test $enableteciompi = yes); then
+  
+    # tecio platform-specific compiler flags
+    TECIOMPI_CPPFLAGS=""
+    case "${host_os}" in
+      *linux*)
+	TECIOMPI_CPPFLAGS="-DLINUX $TECIO_CPPFLAGS"
+	AC_CHECK_SIZEOF([void *])
+	if (test $ac_cv_sizeof_void_p = 8); then
+	  TECIOMPI_CPPFLAGS="-DLINUX64 $TECIO_CPPFLAGS"
+	fi
+	;;
+
+      *darwin*)
+	TECIOMPI_CPPFLAGS="-DDARWIN -DMAC64 $TECIO_CPPFLAGS"
+        ;;
+
+        *)
+	AC_MSG_RESULT([>>> Unrecognized TecIO platform, see externals/tecio/Runmake for hints on how to extend <<<])
+	;;
+    esac
+
+    if (test "x$enableteciompi" = xyes); then
+      TECIOMPI_INCLUDE="-I\$(top_srcdir)/externals/tecio/teciompisrc"
+      TECIOMPI_LIB="\$(top_builddir)/externals/tecio/teciompisrc/libteciompi.a"
+    fi
+  else
+     TECIOMPI_INCLUDE=""
+     enabletecio=no
+     have_tecio=no
+  fi
+
+  AC_SUBST(TECIOMPI_INCLUDE)
+  AC_SUBST(TECIOMPI_CPPFLAGS)
 ])

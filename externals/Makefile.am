@@ -42,6 +42,10 @@ SUBDIRS =
 
 if BUILD_TECIO
   SUBDIRS += tecio
+else
+if BUILD_TECIOMPI
+  SUBDIRS += tecio
+endif
 endif
 
 if BUILD_METIS
